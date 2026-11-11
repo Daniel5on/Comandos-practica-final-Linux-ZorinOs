@@ -1,0 +1,105 @@
+# =========================================================================
+# CHEAT SHEET NIVEL PRO - PRACTICA FINAL DE SISTEMAS OPERATIVOS IUTEPI
+# Autor: Daniel León, Jesús Jiménez, Gabriel Serrano
+# =========================================================================
+
+
+# =========================================================================
+# MODULO 1: Gestión Avanzada de Usuarios, Grupos y Permisos
+# =========================================================================
+
+# 1. Crear grupos principal y secundario
+sudo groupadd sysadmins
+sudo groupadd devteam
+
+# 2. Crear usuarios y asignarlos a sus grupos (con directorio home -m)
+sudo useradd -m -g devteam operador1
+sudo useradd -m -g devteam desarrollador1
+sudo useradd -m -g sysadmins auditor1
+
+# 3. Asignar contraseñas seguras a los usuarios
+sudo passwd operador1
+sudo passwd desarrollador1
+sudo passwd auditor1
+
+# 4. Crear estructura de directorios, cambiar propietario/grupo y permisos octales (750)
+sudo mkdir -p /srv/proyecto_so
+sudo chown root:sysadmins /srv/proyecto_so
+sudo chmod 750 /srv/proyecto_so
+
+# 5. Verificación (Captura obligatoria)
+ls -ld /srv/proyecto_so
+
+
+# =========================================================================
+# MODULO 2: Gestión de Procesos, Servicios y Recursos del Sistema
+# =========================================================================
+
+# 1. Simular carga en segundo plano y buscar su PID
+sleep 900 &
+ps aux | grep sleep
+
+# 2. Cambiar la prioridad del proceso (Ejemplo con PID 6501, cámbialo por el tuyo)
+sudo renice -n 10 -p 6501
+
+# 3. Verificar la nueva prioridad del proceso
+ps -o pid,ni,cmd -p 6501
+
+# 4. Gestión del servicio web Apache (Instalar si no está: sudo apt install apache2 -y)
+sudo systemctl status apache2
+sudo systemctl restart apache2
+sudo systemctl enable apache2
+
+# 5. Verificación de servicio activo (Captura obligatoria)
+sudo systemctl is-active apache2
+
+
+# =========================================================================
+# MODULO 3: Automatización y Scripting en Bash
+# =========================================================================
+
+# 1. Crear el archivo del script
+nano backup_sistema.sh
+
+# --- PEGA ESTO DENTRO DE NANO ---
+#!/bin/bash
+# Script de Respaldo Automatizado - Sistemas Operativos IUTEPI
+
+if [ "$EUID" -ne 0 ]; then
+    echo "Error: Este script debe ser ejecutado obligatoriamente con privilegios de root."
+    exit 1
+fi
+
+DESTINO="/var/backups/so_2026"
+mkdir -p "$DESTINO"
+
+TAR_FILE="$DESTINO/red_backup_$(date +%Y%m%d).tar.gz"
+tar -czvf "$TAR_FILE" /etc/network /etc/netplan 2>/dev/null
+
+echo "Respaldo completado con éxito el: $(date '+%Y-%m-%d %H:%M:%S')"
+exit 0
+# --- (Guarda con Ctrl+O, Enter y sal con Ctrl+X) ---
+
+# 2. Asignar permisos de ejecución y correr el script
+sudo chmod +x backup_sistema.sh
+sudo ./backup_sistema.sh
+
+# 3. Verificación del respaldo generado (Captura obligatoria)
+ls -lh /var/backups/so_2026/
+
+
+# =========================================================================
+# MODULO 4: Redes, Conectividad y Diagnóstico de Logs
+# =========================================================================
+
+# 1. Diagnóstico de red e interfaces
+ip a
+
+# 2. Prueba de conectividad externa (ping limitado a 10 paquetes)
+ping -c 10 8.8.8.8
+
+# 3. Listar puertos activos y sockets en escucha
+ss -tulpn
+
+# 4. Inspección de logs de autenticación (Captura obligatoria)
+sudo tail -n 15 /var/log/auth.log
